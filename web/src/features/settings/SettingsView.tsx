@@ -51,6 +51,7 @@ import {
   UI_FONT_SIZE_STEPS,
 } from './font-size-steps'
 import { TextSizeControl } from './TextSizeControl'
+import { RemoteAccessConnections } from '@/features/remote-access/RemoteAccessConnections'
 
 type SettingsSectionId = 'model' | 'image' | 'paths' | 'access' | 'appearance' | 'updates' | 'labs' | 'agent' | 'terminal' | 'web-access' | 'debug' | 'ide-editor' | 'ide-output' | 'versions' | 'interactive'
 
@@ -466,6 +467,7 @@ export function SettingsView({ onClose, visible = true }: { onClose?: () => void
           <div className="rounded-[var(--nova-radius)] border border-[var(--nova-border)] bg-[var(--nova-surface-2)] px-3 py-2 text-xs leading-5 text-[var(--nova-text-faint)]">
             {t('settings.access.restartHint')}
           </div>
+          <RemoteAccessConnections />
         </>
       ),
     },

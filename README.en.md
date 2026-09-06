@@ -116,7 +116,7 @@ The recommended setup is through Settings: add a provider connection, select or 
 
 ## Remote Access and Phone Usage
 
-Enable LAN access under **Settings → Remote Access**, then set a username and password. Other devices can open the address shown on that page, and phone browsers can add Denova to the home screen.
+Enable LAN access under **Settings → Access**, set a username and password, and restart. Other devices can sign in at the displayed address. The host can also create a one-use sign-in QR code and link that expire after 5 minutes. Scan with a phone on the same LAN, or copy the link to another device. The browser stays signed in for 30 days across refreshes and server restarts; sign out from Settings. Phone browsers can add Denova to the home screen.
 
 For public or domain-based deployments, put Denova behind an HTTPS reverse proxy such as Caddy or Nginx so login credentials are not transmitted in cleartext.
 

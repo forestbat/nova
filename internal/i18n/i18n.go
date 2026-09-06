@@ -77,6 +77,11 @@ func stringify(v any) string {
 }
 
 var catalogZH = map[string]string{
+	"api.access.invalidCredentials": "用户名或密码错误。",
+	"api.access.originRejected":     "此请求的来源不受信任，请从 Denova 页面重试。",
+	"api.access.pairingInvalid":     "连接链接已失效或已使用，请生成新链接或使用账号密码登录。",
+	"api.access.storeFailed":        "无法保存或读取登录状态，请检查数据目录权限及服务日志。",
+
 	"api.update.checkFailed":                  "检查更新失败，请稍后重试。详细原因请查看服务端日志。",
 	"api.update.installFailed":                "安装更新失败，请重试或从 GitHub Releases 手动下载安装包。详细原因请查看服务端日志。",
 	"api.update.applyFailed":                  "应用更新失败，请查看服务端日志，并尝试手动重启或安装。",
@@ -223,6 +228,11 @@ var catalogZH = map[string]string{
 }
 
 var catalogEN = map[string]string{
+	"api.access.invalidCredentials": "Incorrect username or password.",
+	"api.access.originRejected":     "This request origin is not allowed. Retry from the Denova page.",
+	"api.access.pairingInvalid":     "This connection link has expired or was already used. Generate another link or sign in with your password.",
+	"api.access.storeFailed":        "Could not read or save the login session. Check data directory permissions and server logs.",
+
 	"api.update.checkFailed":                  "Could not check for updates. Try again later; see server logs for details.",
 	"api.update.installFailed":                "Could not install the update. Retry or download the archive from GitHub Releases; see server logs for details.",
 	"api.update.applyFailed":                  "Could not apply the update. See server logs and try restarting or installing manually.",

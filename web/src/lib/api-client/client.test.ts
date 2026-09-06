@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'sonner'
+import { queryClient } from '@/lib/query-client'
 import { setConfiguredLocale } from '@/i18n'
-import { APIError, clearRemoteAccessCredentials, fetchAPI, parseSSEStream, requestJSON, responseAPIError, setRemoteAccessCredentials, withErrorLogID } from './client'
+import { APIError, fetchAPI, parseSSEStream, requestJSON, responseAPIError, withErrorLogID } from './client'
 
 vi.mock('sonner', () => ({
   toast: {
@@ -66,31 +67,23 @@ describe('api client backend availability toast', () => {
     expect(toast.error).not.toHaveBeenCalled()
   })
 
-  it('adds remote access credentials to local API requests', async () => {
-    setRemoteAccessCredentials('reader', 'secret')
+  it('uses browser cookies without storing or sending a Basic password', async () => {
+    window.sessionStorage.setItem('nova.remoteAccess.credentials', JSON.stringify({ username: 'old', password: 'secret' }))
     const fetchMock = vi.fn(async () => new Response('{}', { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)
-
     await fetchAPI('/api/settings')
-
     const [, init] = (fetchMock.mock.calls as unknown as Array<[RequestInfo | URL, RequestInit]>)[0]
-    expect(new Headers(init.headers).get('Authorization')).toBe('Basic cmVhZGVyOnNlY3JldA==')
+    expect(new Headers(init.headers).has('Authorization')).toBe(false)
   })
 
-  it('clears stale credentials and requests login on remote access rejection', async () => {
-    setRemoteAccessCredentials('reader', 'wrong')
-    const listener = vi.fn()
-    window.addEventListener('nova:remote-access-required', listener)
+  it('revalidates authentication for a server cookie challenge', async () => {
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries').mockResolvedValue()
     vi.stubGlobal('fetch', vi.fn(async () => new Response('auth required', {
-      status: 401,
-      headers: { 'WWW-Authenticate': 'Basic realm="Nova"' },
+      status: 401, headers: { 'X-Denova-Auth': 'required' },
     })))
-
     await expect(requestJSON('/api/settings')).rejects.toThrow('auth required')
-
-    expect(listener).toHaveBeenCalledTimes(1)
-    clearRemoteAccessCredentials()
-    window.removeEventListener('nova:remote-access-required', listener)
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['remote-access'] })
+    invalidate.mockRestore()
   })
 
   it('preserves status, domain code and details for structured conflicts', async () => {

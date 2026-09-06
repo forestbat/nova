@@ -12,6 +12,11 @@ Denova records only major user-visible features, important compatibility or data
 
 ## [Unreleased]
 
+### Fixed / 修复
+
+- 修复局域网登录页面无法显示及刷新后反复认证的问题；浏览器可保持登录 30 天，并支持本机生成短时一次性登录二维码和链接。
+- Fixed LAN sign-in pages failing to load and repeated authentication after refresh; browsers stay signed in for 30 days and can connect through short-lived, one-use QR codes and links created on the host.
+
 ## [v0.4.2] - 2026-09-06
 
 ### Brief / 简要说明

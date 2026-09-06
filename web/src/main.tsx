@@ -1,10 +1,13 @@
-import { StrictMode } from 'react'
+import { lazy, StrictMode, Suspense, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from 'next-themes'
 import { setConfiguredLocale } from '@/i18n'
 import './index.css'
-import App from './App'
+import { RemoteAccessGate } from '@/features/remote-access/RemoteAccessGate'
+import { LoadingState } from '@/components/common/LoadingState'
+import i18next from '@/i18n'
+
 import { RuntimeErrorBoundary } from '@/components/RuntimeErrorBoundary'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -13,6 +16,8 @@ import { installGlobalRuntimeLoggers, recordRuntimeLog, scheduleWhiteScreenCheck
 import { fetchSettings } from '@/features/settings/api'
 import { applyFontSettings, fontSettingsFromEffective } from '@/features/settings/font-variables'
 import { AgentApprovalProvider } from '@/features/agent-approval/AgentApprovalProvider'
+
+const App = lazy(() => import('./App'))
 
 installGlobalRuntimeLoggers()
 
@@ -32,9 +37,9 @@ createRoot(root).render(
       <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem themes={['light', 'dark']}>
         <TooltipProvider>
           <RuntimeErrorBoundary>
-            <AgentApprovalProvider>
-              <App />
-            </AgentApprovalProvider>
+            <RemoteAccessGate>
+              <AuthenticatedApp />
+            </RemoteAccessGate>
             <Toaster richColors closeButton />
           </RuntimeErrorBoundary>
         </TooltipProvider>
@@ -44,7 +49,15 @@ createRoot(root).render(
 )
 
 scheduleWhiteScreenCheck(root)
-void bootstrapSettings()
+
+function AuthenticatedApp() {
+  useEffect(() => { void bootstrapSettings() }, [])
+  return (
+    <Suspense fallback={<LoadingState data-nova-app-shell="true" label={i18next.t('remoteAccess.connecting')} />}>
+      <AgentApprovalProvider><App /></AgentApprovalProvider>
+    </Suspense>
+  )
+}
 
 async function bootstrapSettings() {
   try {

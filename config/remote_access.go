@@ -22,6 +22,7 @@ var (
 
 // RemoteAccessConfig is the runtime subset needed by the HTTP access gate.
 type RemoteAccessConfig struct {
+	DataDir        string // Runtime-only root for browser credentials.
 	AllowLANAccess bool
 	Username       string
 	PasswordHash   string
