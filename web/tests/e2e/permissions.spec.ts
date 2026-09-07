@@ -10,6 +10,9 @@ import { openAgentChatSession, openAgentChatWorkbench, submitAgentChatMessage } 
 import { getModelStatus } from '../support/model'
 
 test('enforces Ask, Write, and Full access on a real external filesystem read', async ({ page, request }) => {
+  // Three complete permission flows need the slow-test budget on CI.
+  // Keep individual assertion timeouts unchanged.
+  test.slow()
   const projectPath = path.resolve('test-results', 'runtime', 'permission-project')
   await mkdir(projectPath, { recursive: true })
   const project = await registerAgentChatProject(request, projectPath)
