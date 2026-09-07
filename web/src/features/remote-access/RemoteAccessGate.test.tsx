@@ -6,6 +6,7 @@ import { setConfiguredLocale } from '@/i18n'
 import { queryClient } from '@/lib/query-client'
 import { handleRemoteAccessChallenge } from '@/lib/api-client/client'
 import { RemoteAccessGate } from './RemoteAccessGate'
+import { remoteAccessQuery } from './api'
 
 function mount() {
   return render(<StrictMode><QueryClientProvider client={queryClient}><RemoteAccessGate><div>Private workbench</div></RemoteAccessGate></QueryClientProvider></StrictMode>)
@@ -66,7 +67,7 @@ describe('RemoteAccessGate', () => {
     queryClient.clear()
     fetchMock.mockImplementation(async () => { throw new Error('Network unavailable') })
     mount()
-    await screen.findByText('Network unavailable')
+    await screen.findByText('Network unavailable', {}, { timeout: 2500 })
     expect(screen.queryByText('Private workbench')).not.toBeInTheDocument()
     fetchMock.mockImplementation(async () => json({ authenticated: true, local: true }))
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
@@ -82,6 +83,27 @@ describe('RemoteAccessGate', () => {
     expect(window.location.hash).toBe('')
     expect(fetchMock).toHaveBeenCalledTimes(1)
     expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/auth/status')
+  })
+
+  it('rechecks a failed startup when the PWA returns to the foreground', async () => {
+    const fetchMock = vi.fn(async (): Promise<Response> => { throw new Error('Network unavailable') })
+    vi.stubGlobal('fetch', fetchMock)
+    mount()
+    await screen.findByText('Network unavailable', {}, { timeout: 2500 })
+    fetchMock.mockImplementation(async () => json({ authenticated: true, local: false }))
+    act(() => { fireEvent(document, new Event('visibilitychange')) })
+    await screen.findByText('Private workbench')
+  })
+
+  it('continues startup when connectivity recovers after the initial query retry', async () => {
+    const fetchMock = vi.fn()
+      .mockRejectedValueOnce(new TypeError('Load failed'))
+      .mockRejectedValueOnce(new TypeError('Load failed'))
+      .mockImplementation(async () => json({ authenticated: true, local: false }))
+    vi.stubGlobal('fetch', fetchMock)
+    mount()
+    await screen.findByText('Private workbench', {}, { timeout: 2500 })
+    expect(fetchMock).toHaveBeenCalledTimes(4)
   })
 
   it('handles scanned links opened in an existing login tab, including invalid links', async () => {
@@ -119,5 +141,35 @@ describe('RemoteAccessGate', () => {
     await act(async () => { handleRemoteAccessChallenge() })
     await waitFor(() => expect(screen.queryByText('Private workbench')).not.toBeInTheDocument())
     expect(screen.getByLabelText('Password')).toBeInTheDocument()
+  })
+
+  it('recovers a failed startup status read without losing or replaying the pairing token', async () => {
+    vi.useFakeTimers()
+    window.history.replaceState(null, '', '/#pair=one-use-secret')
+    const fetchMock = vi.fn()
+      .mockRejectedValueOnce(new TypeError('Load failed'))
+      .mockResolvedValueOnce(json({ authenticated: false, local: false }))
+      .mockResolvedValueOnce(json({ authenticated: true, local: false }))
+    vi.stubGlobal('fetch', fetchMock)
+    const result = queryClient.fetchQuery(remoteAccessQuery)
+    const assertion = expect(result).resolves.toEqual({ authenticated: true, local: false })
+    await vi.advanceTimersByTimeAsync(1000)
+    await assertion
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(['/api/auth/status', '/api/auth/status', '/api/auth/pair'])
+    expect(JSON.parse(fetchMock.mock.calls[2]?.[1].body)).toEqual({ token: 'one-use-secret' })
+    expect(window.location.hash).toBe('')
+  })
+
+  it('never automatically replays a pairing POST after a lost response', async () => {
+    vi.useFakeTimers()
+    window.history.replaceState(null, '', '/#pair=one-use-secret')
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(json({ authenticated: false, local: false }))
+      .mockRejectedValueOnce(new TypeError('Load failed'))
+      .mockResolvedValue(json({ authenticated: true, local: false }))
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(queryClient.fetchQuery(remoteAccessQuery)).rejects.toThrow('Load failed')
+    await vi.advanceTimersByTimeAsync(10_000)
+    expect(fetchMock.mock.calls.filter(([url]) => url === '/api/auth/pair')).toHaveLength(1)
   })
 })

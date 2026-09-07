@@ -1,6 +1,6 @@
 import { cloneElement, isValidElement, useEffect, useId, useRef, useState, useCallback } from 'react'
 import type { ReactNode } from 'react'
-import { ChevronDown, ChevronUp, Download, ExternalLink, Loader2, RefreshCw, Settings as SettingsIcon } from 'lucide-react'
+import { ChevronDown, ChevronUp, Download, ExternalLink, Loader2, RefreshCw } from 'lucide-react'
 import { useReducedMotionConfig } from 'motion/react'
 import type { AnimationPlaybackControls } from 'motion/react'
 import { useTranslation } from 'react-i18next'
@@ -17,9 +17,7 @@ import { InlineErrorNotice } from '@/components/common/inline-error-notice'
 import { LoadingState } from '@/components/common/LoadingState'
 import { AutosaveStatusIndicator } from '@/components/forms/autosave-status'
 import { SettingsFieldRow } from '@/components/forms/settings-field-row'
-import { AdaptiveSurface } from '@/components/layout/adaptive-surface'
-import { FeaturePageShell } from '@/components/layout/feature-page-shell'
-import { MobilePaneTrigger } from '@/components/layout/mobile-pane-trigger'
+import { SettingsPageFrame } from './SettingsPageFrame'
 import { SectionedNavigation } from '@/components/navigation/sectioned-navigation'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -74,7 +72,7 @@ const TRACE_CAPTURE_OPTIONS = [
 const TRACE_EXPORTER_OPTIONS = [
   { value: 'local', labelKey: 'settings.debug.traceExporterLocal' },
 ] as const
-export function SettingsView({ onClose, visible = true }: { onClose?: () => void; visible?: boolean }) {
+export function SettingsView({ visible = true }: { visible?: boolean }) {
   const { t } = useTranslation()
   const reducedMotion = useReducedMotionConfig()
   const approval = useAgentApprovalMode()
@@ -830,16 +828,13 @@ export function SettingsView({ onClose, visible = true }: { onClose?: () => void
   )
 
   return (
-    <FeaturePageShell
-      icon={SettingsIcon}
+    <SettingsPageFrame
+      visible={visible}
       title={t('settings.title')}
       className="nova-settings-view"
       error={error}
       errorTitle={t('settings.error.save')}
-      onClose={onClose ? () => {
-        void saveNow().then(() => onClose()).catch(() => undefined)
-      } : undefined}
-      closeLabel={t('settings.close')}
+      navigation={layered ? navPanel : undefined}
       onSaveShortcut={() => saveNow().catch(() => undefined)}
       actions={(
         <AutosaveStatusIndicator
@@ -852,67 +847,36 @@ export function SettingsView({ onClose, visible = true }: { onClose?: () => void
       {!layered ? (
         <LoadingState label={t('common.loading')} className="min-h-0 flex-1" />
       ) : (
-      <AdaptiveSurface
-        left={{
-          id: 'settings-nav',
-          title: t('settings.title'),
-          side: 'left',
-          icon: <SettingsIcon className="h-4 w-4" />,
-          content: navPanel,
-          desktopClassName: 'min-h-0 border-r border-[var(--nova-border)]',
-          mobileClassName: 'w-[min(86vw,340px)]',
-        }}
-        className="flex-1 text-xs"
-        mainClassName="min-h-0 min-w-0"
-        leftResize={{
-          layoutKey: 'nova-settings-navigation-layout',
-          label: t('layout.resize.sidebar'),
-          defaultSize: '224px',
-          minSize: '200px',
-          maxSize: '36%',
-        }}
-      >
-        {({ openLeft }) => (
-          <div
-            ref={contentRef}
-            data-nova-settings-content="true"
-            onScroll={onContentScroll}
-            onWheelCapture={cancelSectionScroll}
-            onPointerDownCapture={cancelSectionScroll}
-            onKeyDownCapture={cancelSectionScroll}
-            onTouchStartCapture={cancelSectionScroll}
-            className="h-full min-h-0 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6"
-          >
-            <MobilePaneTrigger
-              side="left"
-              label={t('workbench.mobile.openSidePanel', { label: t('settings.title') })}
-              onClick={openLeft}
-              className="mb-3 md:hidden"
-            >
-              {t('settings.title')}
-            </MobilePaneTrigger>
-            <div className="mx-auto w-full min-w-0 max-w-5xl">
-              {sections.map((section) => (
-                <Section
-                  key={section.id}
-                  id={section.id}
-                  ref={(node) => {
-                    sectionRefs.current[section.id] = node
-                  }}
-                  group={section.group}
-                  title={section.title}
-                  expanded={expandedSections[section.id]}
-                  onToggle={() => toggleSection(section.id)}
-                >
-                  {section.children}
-                </Section>
-              ))}
-            </div>
+        <div
+          ref={contentRef}
+          data-nova-settings-content="true"
+          onScroll={onContentScroll}
+          onWheelCapture={cancelSectionScroll}
+          onPointerDownCapture={cancelSectionScroll}
+          onKeyDownCapture={cancelSectionScroll}
+          onTouchStartCapture={cancelSectionScroll}
+          className="h-full min-h-0 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6"
+        >
+          <div className="mx-auto w-full min-w-0 max-w-5xl">
+            {sections.map((section) => (
+              <Section
+                key={section.id}
+                id={section.id}
+                ref={(node) => {
+                  sectionRefs.current[section.id] = node
+                }}
+                group={section.group}
+                title={section.title}
+                expanded={expandedSections[section.id]}
+                onToggle={() => toggleSection(section.id)}
+              >
+                {section.children}
+              </Section>
+            ))}
           </div>
-        )}
-      </AdaptiveSurface>
+        </div>
       )}
-    </FeaturePageShell>
+    </SettingsPageFrame>
   )
 }
 

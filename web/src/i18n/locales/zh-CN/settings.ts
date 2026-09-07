@@ -1,4 +1,5 @@
 const settings = {
+  'settings.categories': '设置分类',
   'settings.apiKey.show': '显示 API Key',
   'settings.apiKey.hide': '隐藏 API Key',
   'settings.agent.maxIteration': '最大迭代轮数（留空不限制）',
@@ -106,7 +107,6 @@ const settings = {
   'settings.font.invalidCustom': '无效的自定义字体',
   'settings.bool.false': '关闭',
   'settings.bool.true': '开启',
-  'settings.close': '关闭设置',
   'settings.error.save': '配置保存失败',
   'settings.debug.llmInputLog': '记录完整 LLM 输入',
   'settings.debug.llmInputLogHelp': '仅开发模式可用。开启后会把完整模型可见上下文、工具 schema 和非密钥模型参数异步写入 log/llm-inputs.jsonl，内容可能很大且包含用户文本，仅用于诊断。',
@@ -304,7 +304,7 @@ const settings = {
   'settings.onboarding.reopen': '重新打开',
   'settings.section.agent': 'Agent',
   'settings.section.appearance': '外观',
-  'settings.section.access': '访问',
+  'settings.section.access': '局域网访问',
   'settings.section.debug': '调试',
   'settings.section.editor': '编辑器',
   'settings.section.interactive': '故事舞台',

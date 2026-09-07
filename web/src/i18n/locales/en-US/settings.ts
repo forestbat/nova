@@ -1,4 +1,5 @@
 const settings = {
+  'settings.categories': 'Categories',
   'settings.apiKey.show': 'Show API Key',
   'settings.apiKey.hide': 'Hide API Key',
   'settings.agent.maxIteration': 'Max Iterations (blank = unlimited)',
@@ -106,7 +107,6 @@ const settings = {
   'settings.font.invalidCustom': 'Invalid custom font',
   'settings.bool.false': 'Off',
   'settings.bool.true': 'On',
-  'settings.close': 'Close Settings',
   'settings.error.save': 'Failed to save configuration',
   'settings.debug.llmInputLog': 'Log Full LLM Inputs',
   'settings.debug.llmInputLogHelp': 'Available only in development mode. When enabled, Denova asynchronously writes the full model-visible context, tool schemas, and non-secret model parameters to log/llm-inputs.jsonl. The file can be large and may contain user text; use it only for diagnostics.',
@@ -304,7 +304,7 @@ const settings = {
   'settings.onboarding.reopen': 'Reopen',
   'settings.section.agent': 'Agent',
   'settings.section.appearance': 'Appearance',
-  'settings.section.access': 'Access',
+  'settings.section.access': 'LAN Access',
   'settings.section.debug': 'Debug',
   'settings.section.editor': 'Editor',
   'settings.section.interactive': 'Story Stage',

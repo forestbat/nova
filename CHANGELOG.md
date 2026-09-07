@@ -4,15 +4,43 @@ Denova 仅在此记录用户可感知的重大功能、重要不兼容或数据�
 
 Denova records only major user-visible features, important compatibility or data changes, security updates, and fixes affecting core workflows. Internal refactors, test changes, copy edits, and minor UI polish are omitted; see the [Git history](https://github.com/alfredxw/denova/commits/master) for full details.
 
-`Unreleased` 以最近一个已发布版本（当前为 v0.4.2）为比较基线，只描述升级用户最终可感知的净变化；内部接口、实现重构和 v0.4.2 后从未发布的中间格式不计入。
+`Unreleased` 以最近一个已发布版本（当前为 v0.4.3）为比较基线，只描述升级用户最终可感知的净变化；内部接口、实现重构和 v0.4.3 后从未发布的中间格式不计入。
 
-`Unreleased` compares against the latest release (currently v0.4.2) and describes only the final user-visible delta. Internal APIs, implementation refactors, and intermediate formats never released after v0.4.2 are excluded.
+`Unreleased` compares against the latest release (currently v0.4.3) and describes only the final user-visible delta. Internal APIs, implementation refactors, and intermediate formats never released after v0.4.3 are excluded.
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)。
 
 ## [Unreleased]
 
+## [v0.4.3] - 2026-09-07
+
+### Brief / 简要说明
+
+#### 中文
+
+- 改善手机网页与 PWA 的写作、游戏、导航和输入体验。
+- 修复局域网登录与刷新后的认证，支持一次性二维码登录。
+- 修复 Agent 设置保存覆盖无关配置，并将异常对话历史的影响限制在对应会话内。
+
+#### English
+
+- Improved writing, gameplay, navigation, and input on mobile web and PWA.
+- Fixed LAN sign-in and authentication after refresh, with one-use QR sign-in.
+- Prevented Agent settings saves from overwriting unrelated profiles and isolated invalid conversation history to the affected session.
+
+
+### Changed / 调整
+
+- 优化手机网页与 PWA 的导航、写作和游戏交互：全屏工作面板、独立正文与 Agent 视图、剧情历史与分支列表，以及适应软键盘的输入布局；保留桌面布局。
+- Improved mobile web and PWA navigation, writing, and gameplay with full-screen panels, separate editor and Agent views, readable story history and branches, and keyboard-aware input while preserving desktop layouts.
+
 ### Fixed / 修复
+
+- 异常对话历史仅阻止对应会话或故事加载，避免影响其他会话和工作台使用。
+- Invalid conversation history now blocks only the affected session or story, keeping other conversations and the workbench usable.
+
+- 修复切换模型或保存 Agent 设置时覆盖无关配置文件的问题；按文件检查冲突并保留可恢复的变更记录。
+- Fixed model selection and Agent settings saves overwriting unrelated profiles; each changed file now checks for conflicts and retains recoverable history.
 
 - 修复局域网登录页面无法显示及刷新后反复认证的问题；浏览器可保持登录 30 天，并支持本机生成短时一次性登录二维码和链接。
 - Fixed LAN sign-in pages failing to load and repeated authentication after refresh; browsers stay signed in for 30 days and can connect through short-lived, one-use QR codes and links created on the host.

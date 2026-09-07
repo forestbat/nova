@@ -5,6 +5,8 @@ const remoteAccess = {
   'remoteAccess.rememberHint': '此浏览器将保持登录 30 天，可在设置中退出登录。',
   'remoteAccess.lanAddress': '局域网访问地址',
   'remoteAccess.lanAddressHint': '同一局域网内的设备可直接访问此地址，使用用户名和密码登录。',
+  'remoteAccess.installTitle': '添加到主屏幕或桌面',
+  'remoteAccess.installHint': '可将 Denova 保存为 PWA 应用，之后像桌面应用一样独立打开。在支持的浏览器中，使用菜单里的“添加到主屏幕”或“安装应用”即可。',
   'remoteAccess.createLink': '生成登录二维码',
   'remoteAccess.regenerateLink': '重新生成登录二维码',
   'remoteAccess.qrCode': 'Denova 一次性登录二维码',

@@ -50,6 +50,10 @@ export function RemoteAccessConnections() {
         <Button type="button" variant="outline" onClick={() => void logout()} disabled={busy}>{t('remoteAccess.signOut')}</Button>
         <FieldDescription>{t('remoteAccess.rememberHint')}</FieldDescription>
       </Field>}
+      <Field>
+        <FieldLabel>{t('remoteAccess.installTitle')}</FieldLabel>
+        <FieldDescription>{t('remoteAccess.installHint')}</FieldDescription>
+      </Field>
       {error && <FieldError>{error}</FieldError>}
     </FieldGroup>
   )

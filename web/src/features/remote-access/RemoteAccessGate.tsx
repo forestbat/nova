@@ -14,6 +14,22 @@ export function RemoteAccessGate({ children }: { children: ReactNode }) {
   const { refetch } = authentication
 
   useEffect(() => {
+    if (!authentication.isError) return
+    if (authentication.error instanceof APIError && authentication.error.status === 401) return
+    const reconnect = () => {
+      if (document.visibilityState === 'visible') void refetch()
+    }
+    document.addEventListener('visibilitychange', reconnect)
+    window.addEventListener('pageshow', reconnect)
+    window.addEventListener('online', reconnect)
+    return () => {
+      document.removeEventListener('visibilitychange', reconnect)
+      window.removeEventListener('pageshow', reconnect)
+      window.removeEventListener('online', reconnect)
+    }
+  }, [authentication.error, authentication.isError, refetch])
+
+  useEffect(() => {
     // Opening a scanned link in an existing tab can be a fragment-only navigation.
     const connectFromLink = () => {
       if (new URLSearchParams(window.location.hash.slice(1)).has('pair')) void refetch()

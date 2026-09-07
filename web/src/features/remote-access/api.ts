@@ -13,7 +13,7 @@ export const remoteAccessQuery = queryOptions({
   queryKey: ['remote-access'],
   staleTime: Infinity,
   retry: false,
-  queryFn: async (): Promise<RemoteAccessStatus> => {
+  queryFn: async ({ client }): Promise<RemoteAccessStatus> => {
     const hash = new URLSearchParams(window.location.hash.slice(1))
     const token = hash.get('pair')
     if (token !== null) {
@@ -21,7 +21,14 @@ export const remoteAccessQuery = queryOptions({
       const remaining = hash.toString()
       window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}${remaining ? `#${remaining}` : ''}`)
     }
-    const status = await requestJSON<RemoteAccessStatus>('/api/auth/status')
+    // Reuse the normal query retry policy for the read only. The outer query
+    // keeps the one-use token in this invocation and never replays a pairing POST.
+    const status = await client.fetchQuery({
+      queryKey: ['remote-access-status'],
+      staleTime: 0,
+      gcTime: 0,
+      queryFn: () => requestJSON<RemoteAccessStatus>('/api/auth/status', { cache: 'no-store' }),
+    })
     // Reopening a previously used link must not interrupt a valid browser login.
     if (status.authenticated || token === null) return status
     return requestJSON('/api/auth/pair', { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ token }) })

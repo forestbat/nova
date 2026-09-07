@@ -9,6 +9,16 @@ export const jsonHeaders = { 'Content-Type': 'application/json' }
 const REQUEST_ID_HEADER = 'X-Request-ID'
 const BACKEND_UNAVAILABLE_TOAST_ID = 'nova-backend-unavailable'
 const BACKEND_UNAVAILABLE_STATUS = new Set([502, 503, 504])
+// Give mobile foreground recovery and query retries time to restore the connection.
+const BACKEND_CHECK_DELAY_MS = 1500
+const BACKEND_CHECK_TIMEOUT_MS = 5000
+let backendCheck: AbortController | undefined
+let backendCheckTimer: ReturnType<typeof setTimeout> | undefined
+let backendUnavailableShown = false
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', clearBackendUnavailable)
+}
 
 type APIRequestInit = RequestInit & {
   suppressBackendUnavailableToast?: boolean
@@ -38,6 +48,7 @@ export async function fetchAPI(input: RequestInfo | URL, init?: APIRequestInit):
   const requestInit = baseInit
   try {
     const res = await fetch(input, requestInit)
+    if (res.status < 500 && isLocalAPIRequest(input)) clearBackendUnavailable()
     if (!suppressBackendUnavailableToast) notifyBackendUnavailableIfNeeded(input, res.status)
     notifyRemoteAccessRequiredIfNeeded(input, res)
     return res
@@ -181,10 +192,57 @@ function shouldNotifyBackendUnavailable(input: RequestInfo | URL, error: unknown
 }
 
 function notifyBackendUnavailable() {
+  if (backendCheck || document.visibilityState === 'hidden') return
+  const controller = new AbortController()
+  backendCheck = controller
+  backendCheckTimer = setTimeout(() => { void checkBackendAvailability(controller) }, BACKEND_CHECK_DELAY_MS)
+}
+
+async function checkBackendAvailability(controller: AbortController) {
+  if (backendCheck !== controller) return
+  if (document.visibilityState === 'hidden') {
+    clearBackendUnavailable()
+    return
+  }
+  const timeout = setTimeout(() => controller.abort(), BACKEND_CHECK_TIMEOUT_MS)
+  let failure: unknown
+  try {
+    // Verify reachability independently; never replay a failed write or stream.
+    // Auth status is available before login and must not be served from cache.
+    const response = await fetch('/api/auth/status', { cache: 'no-store', signal: controller.signal })
+    if (backendCheck !== controller) return
+    if (response.status < 500) {
+      clearBackendUnavailable()
+      // Recovery may arrive after the startup query exhausted its retry.
+      void queryClient.invalidateQueries({ queryKey: ['remote-access'], predicate: query => query.state.status === 'error' })
+      return
+    }
+    failure = `HTTP ${response.status}`
+  } catch (error) {
+    failure = error
+  } finally {
+    clearTimeout(timeout)
+  }
+  if (backendCheck !== controller) return
+  backendCheck = undefined
+  if (document.hidden) return
+  if (!backendUnavailableShown) console.warn('[api] Backend connection verification failed', failure)
+  backendUnavailableShown = true
   toast.error(i18next.t('common.backendUnavailable.title'), {
     id: BACKEND_UNAVAILABLE_TOAST_ID,
     description: i18next.t('common.backendUnavailable.description'),
   })
+}
+
+function clearBackendUnavailable() {
+  clearTimeout(backendCheckTimer)
+  backendCheckTimer = undefined
+  backendCheck?.abort()
+  backendCheck = undefined
+  if (backendUnavailableShown) {
+    toast.dismiss(BACKEND_UNAVAILABLE_TOAST_ID)
+    backendUnavailableShown = false
+  }
 }
 
 function isLocalAPIRequest(input: RequestInfo | URL): boolean {

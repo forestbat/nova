@@ -5,6 +5,8 @@ const remoteAccess = {
   'remoteAccess.rememberHint': 'Stay signed in for 30 days in this browser. Sign out from Settings at any time.',
   'remoteAccess.lanAddress': 'LAN address',
   'remoteAccess.lanAddressHint': 'Devices on the same LAN can open this address and sign in with a username and password.',
+  'remoteAccess.installTitle': 'Add to your Home Screen or desktop',
+  'remoteAccess.installHint': 'Save Denova as a PWA to open it in its own app window. In a supported browser, choose “Add to Home Screen” or “Install app” from the browser menu.',
   'remoteAccess.createLink': 'Create sign-in QR code',
   'remoteAccess.regenerateLink': 'Create a new sign-in QR code',
   'remoteAccess.qrCode': 'Denova one-use sign-in QR code',
